@@ -1,0 +1,16 @@
+{
+  "name": "MediLuna: Uyku & Meditasyon",
+  "short_name": "MediLuna",
+  "description": "Huzurun yeni adresi — meditasyon, uyku hikayeleri, nefes egzersizleri ve rahatlatıcı sesler",
+  "lang": "tr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B1B3C",
+  "theme_color": "#0B1B3C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

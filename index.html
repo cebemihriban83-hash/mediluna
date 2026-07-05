@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B1B3C">
+<title>MediLuna: Uyku & Meditasyon</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MediLuna">
+<link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
+<div id="phone">
+
+  <!-- ============ ONBOARDING ============ -->
+  <div id="onboarding" class="overlay hidden">
+    <div class="ob-step" data-step="0">
+      <span class="ob-star" style="top:7%;left:15%"></span>
+      <span class="ob-star" style="top:12%;left:72%;animation-delay:1.1s"></span>
+      <span class="ob-star" style="top:19%;left:40%;animation-delay:.6s"></span>
+      <span class="ob-star" style="top:6%;left:56%;animation-delay:1.8s"></span>
+      <span class="ob-star" style="top:24%;left:86%;animation-delay:2.3s"></span>
+      <span class="ob-star" style="top:28%;left:9%;animation-delay:1.5s"></span>
+      <div class="ob-sun"></div>
+      <div class="ob-logo">M E D I L U N A</div>
+      <div class="ob-breath"><svg viewBox="0 0 24 24"><path d="M19.8 14.2A8.2 8.2 0 1 1 9.8 4.2a6.6 6.6 0 0 0 10 10z"/></svg></div>
+      <div class="ob-glass">
+        <h1>Her gün daha sakin bir zihin</h1>
+        <p class="muted small">Uykun, nefesin ve odağın için özgün Türkçe rehberlik.</p>
+        <div class="ob-chips"><span>🧘 30 meditasyon</span><span>🌙 10 hikaye</span><span>🛡️ Tuzaksız</span></div>
+        <input id="ob-name" type="text" placeholder="Adın" maxlength="20" autocomplete="off">
+        <input id="ob-email" type="email" placeholder="E-posta adresin" autocomplete="email" inputmode="email">
+        <button class="btn primary" id="ob-register">Yolculuğuma Başla</button>
+        <button class="chip ob-skip" id="ob-skip">Şimdilik atla</button>
+        <p class="muted small">🛡️ Şifre yok, spam yok — sözümüz söz.</p>
+      </div>
+    </div>
+    <div class="ob-step hidden" data-step="1">
+      <h1>Hedefin ne?</h1>
+      <p class="muted">Sana özel içerik önerelim. Birden fazla seçebilirsin.</p>
+      <div id="ob-goals" class="goal-grid">
+        <button class="goal" data-goal="stres">😮‍💨 Stresi azaltmak</button>
+        <button class="goal" data-goal="uyku">😴 Daha iyi uyumak</button>
+        <button class="goal" data-goal="odak">🎯 Odaklanmak</button>
+        <button class="goal" data-goal="kaygi">🌊 Kaygıyı yatıştırmak</button>
+        <button class="goal" data-goal="ozguven">💪 Özgüven kazanmak</button>
+        <button class="goal" data-goal="iliskiler">💛 İlişkilerim</button>
+      </div>
+      <button class="btn primary" id="ob-next-1">Devam</button>
+    </div>
+    <div class="ob-step hidden" data-step="2">
+      <div class="ob-art">🔔</div>
+      <h1>Her gün küçük bir mola</h1>
+      <p class="muted">Günde 10 dakika bile fark yaratır. Sana ne zaman hatırlatalım?</p>
+      <input id="ob-time" type="time" value="21:00">
+      <button class="btn primary" id="ob-finish">Başlayalım ✨</button>
+    </div>
+  </div>
+
+  <!-- ============ MAIN SCREENS ============ -->
+  <main id="screens">
+
+    <!-- BUGÜN -->
+    <section id="screen-home" class="screen">
+      <header class="top">
+        <div>
+          <div id="greeting" class="greet">İyi akşamlar</div>
+          <div id="greet-sub" class="muted small">Bugün kendine biraz zaman ayır</div>
+        </div>
+        <div id="streak-chip" class="chip">🔥 0</div>
+      </header>
+
+      <div class="card" id="checkin-card">
+        <div class="hero-tag">BUGÜN NASILSIN?</div>
+        <div class="mood-row" id="checkin-row"></div>
+        <div class="muted small checkin-hint" id="checkin-hint">Dokun; önerileri sana göre ayarlayalım</div>
+      </div>
+
+      <div id="daily-card" class="card hero">
+        <div class="hero-tag" id="daily-tag">GÜNÜN MEDİTASYONU</div>
+        <h2 id="daily-title">—</h2>
+        <div id="daily-meta" class="muted small">—</div>
+        <button class="btn primary sm" id="daily-play">▶ Başlat</button>
+      </div>
+
+      <div id="home-prog-wrap" class="hidden"></div>
+
+      <div class="card goal-card">
+        <div class="row-between">
+          <span class="hero-tag">HAFTALIK HEDEF 🎯</span>
+          <span class="muted small" id="goal-label">0 / 5 seans</span>
+        </div>
+        <div class="gbar"><div id="goal-fill"></div></div>
+        <div class="small goal-done hidden" id="goal-done-msg">Bu hafta hedefini tamamladın! 🎉</div>
+      </div>
+
+      <div class="card live">
+        <span class="live-dot"></span>
+        <span>Şu an <b id="live-count">—</b> kişi seninle birlikte meditasyon yapıyor</span>
+      </div>
+
+      <div class="card quote">
+        <div class="hero-tag">GÜNÜN SÖZÜ</div>
+        <p id="quote-text">—</p>
+        <div class="quote-foot">
+          <span class="muted small">— HUZUR</span>
+          <button class="icon-btn" id="quote-share" title="Paylaş">📤</button>
+        </div>
+      </div>
+
+      <h3 class="section-title">Hızlı başla</h3>
+      <div id="quick-row" class="h-scroll"></div>
+
+      <div id="home-fav-wrap" class="hidden">
+        <h3 class="section-title">Favorilerin 💛</h3>
+        <div id="home-fav-row" class="h-scroll"></div>
+      </div>
+
+      <h3 class="section-title">Sana özel <span class="muted small" id="foryou-sub"></span></h3>
+      <div id="for-you" class="list"></div>
+    </section>
+
+    <!-- KEŞFET -->
+    <section id="screen-explore" class="screen hidden">
+      <header class="top"><div class="greet">Keşfet</div></header>
+      <h3 class="section-title">Yolculuklar 🎒</h3>
+      <div id="prog-row" class="h-scroll"></div>
+      <h3 class="section-title">Tüm Meditasyonlar</h3>
+      <div id="cat-chips" class="h-scroll chips"></div>
+      <div id="explore-list" class="list"></div>
+    </section>
+
+    <!-- UYKU -->
+    <section id="screen-sleep" class="screen hidden">
+      <header class="top"><div class="greet">Uyku</div></header>
+      <div id="story-featured"></div>
+      <h3 class="section-title">Diğer Hikayeler</h3>
+      <div id="story-row" class="h-scroll"></div>
+      <h3 class="section-title">Uyku Meditasyonları</h3>
+      <div id="sleep-med-list" class="list"></div>
+      <h3 class="section-title">Uyku Sesleri</h3>
+      <div id="sleep-sound-row" class="h-scroll"></div>
+    </section>
+
+    <!-- NEFES & SESLER -->
+    <section id="screen-breathe" class="screen hidden">
+      <header class="top"><div class="greet">Nefes & Sesler</div></header>
+      <h3 class="section-title">Nefes Egzersizleri</h3>
+      <div id="breath-list" class="list"></div>
+      <h3 class="section-title">Rahatlatıcı Sesler</h3>
+      <div id="sound-grid" class="sound-grid"></div>
+      <div id="mixer" class="card mixer hidden">
+        <div class="row-between">
+          <b>🎛️ Karışımın</b>
+          <div class="soundbar-actions">
+            <select id="sound-timer">
+              <option value="0">∞</option>
+              <option value="10">10 dk</option>
+              <option value="20">20 dk</option>
+              <option value="30">30 dk</option>
+              <option value="60">60 dk</option>
+            </select>
+            <button class="icon-btn" id="sound-stop" title="Tümünü durdur">⏹</button>
+          </div>
+        </div>
+        <div class="muted small" id="mixer-timer-label">Zamanlayıcı kapalı</div>
+        <div id="mixer-rows"></div>
+      </div>
+    </section>
+
+    <!-- PROFİL -->
+    <section id="screen-profile" class="screen hidden">
+      <header class="top">
+        <div class="greet" id="profile-name">Profil</div>
+        <button class="chip" id="premium-chip">⭐ Premium</button>
+      </header>
+      <button class="card row-between account-row" id="account-row">
+        <span>📧 Hesap oluştur</span><span class="muted small">→</span>
+      </button>
+      <div class="stat-row">
+        <div class="card stat"><div class="stat-num" id="st-streak">0</div><div class="muted small">Günlük seri 🔥</div></div>
+        <div class="card stat"><div class="stat-num" id="st-min">0</div><div class="muted small">Toplam dakika</div></div>
+        <div class="card stat"><div class="stat-num" id="st-ses">0</div><div class="muted small">Seans</div></div>
+      </div>
+      <div class="card row-between freeze-card">
+        <span id="freeze-chip">🧊 Seri Koruma: 2 hak</span>
+        <span class="muted small">Gün kaçırırsan serin korunur</span>
+      </div>
+      <h3 class="section-title">Rozetler 🏅 <span class="muted small" id="badge-count"></span></h3>
+      <div class="card"><div id="badge-grid" class="badge-grid"></div></div>
+      <h3 class="section-title">Bu hafta</h3>
+      <div class="card"><div id="week-chart" class="week-chart"></div></div>
+      <h3 class="section-title">Duygu Günlüğün 📓</h3>
+      <div class="card">
+        <div class="row-between">
+          <span class="muted small">Son 14 gün</span>
+          <span class="small" id="mood-avg">—</span>
+        </div>
+        <div id="mood-chart" class="mood-chart"></div>
+      </div>
+      <h3 class="section-title">Haftalık Hedef 🎯</h3>
+      <div class="card row-between">
+        <span>Haftada kaç seans?</span>
+        <select id="goal-select">
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="7">7</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <h3 class="section-title">Hatırlatıcılar ⏰</h3>
+      <div class="card">
+        <div id="rem-list"></div>
+        <div class="rem-add">
+          <input type="time" id="rem-new" value="08:00">
+          <button class="chip" id="rem-add">+ Saat ekle</button>
+        </div>
+        <div class="muted small rem-hint">Vardiyalı çalışıyorsan birden çok saat ekleyebilirsin. Bildirimler uygulama sürümünde gelir.</div>
+      </div>
+      <h3 class="section-title">Notlarım 📝</h3>
+      <div id="note-list" class="list"></div>
+      <h3 class="section-title">Favoriler</h3>
+      <div id="fav-list" class="list"><p class="muted small" id="fav-empty">Henüz favorin yok. Kalbe dokunarak ekle. 💛</p></div>
+      <button class="btn ghost" id="reset-btn">Verileri sıfırla</button>
+      <div class="muted small center">MediLuna v5 · huzurun yeni adresi · yerli ve özgün 🇹🇷</div>
+    </section>
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav id="nav">
+    <button data-screen="home" class="active"><span class="icon nav-icon" data-icon="sun"></span>Bugün</button>
+    <button data-screen="explore"><span class="icon nav-icon" data-icon="compass"></span>Keşfet</button>
+    <button data-screen="sleep"><span class="icon nav-icon" data-icon="moon"></span>Uyku</button>
+    <button data-screen="breathe"><span class="icon nav-icon" data-icon="wind"></span>Nefes</button>
+    <button data-screen="profile"><span class="icon nav-icon" data-icon="user"></span>Profil</button>
+  </nav>
+
+  <!-- ============ PLAYER OVERLAY ============ -->
+  <div id="player" class="overlay hidden">
+    <button class="icon-btn close" id="player-close">✕</button>
+    <div class="player-body">
+      <div id="player-tag" class="hero-tag">MEDİTASYON</div>
+      <h2 id="player-title">—</h2>
+      <div class="story-head">
+        <div id="story-time" class="muted small">00:00 / 00:00</div>
+        <div class="story-prog"><div id="story-prog-fill"></div></div>
+      </div>
+      <div id="story-flow" class="story-flow"></div>
+      <div class="ring-wrap">
+        <svg viewBox="0 0 200 200" class="ring">
+          <circle cx="100" cy="100" r="88" class="ring-bg"/>
+          <circle cx="100" cy="100" r="88" class="ring-fg" id="ring-fg"/>
+        </svg>
+        <div class="ring-center">
+          <div id="player-time">00:00</div>
+          <div class="muted small" id="player-total">/ 00:00</div>
+        </div>
+      </div>
+      <p id="player-line" class="player-line">Hazır olduğunda başla…</p>
+      <button id="story-tts" class="chip story-tts">🔇 Sesli Oku: Kapalı</button>
+      <button id="player-voice" class="chip hidden">👩 Kadın Ses</button>
+      <div class="player-controls">
+        <button class="icon-btn big" id="player-tts" title="Sesli rehber">🔇</button>
+        <button class="btn primary round" id="player-toggle">▶</button>
+        <button class="icon-btn big" id="player-fav" title="Favori">🤍</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SEANS SONU + DUYGU GÜNLÜĞÜ ============ -->
+  <div id="done" class="overlay hidden">
+    <div class="player-body">
+      <div class="ob-art">🎉</div>
+      <h2>Tebrikler!</h2>
+      <p id="done-text" class="muted">Seansı tamamladın.</p>
+      <p class="done-q">Şu an nasıl hissediyorsun?</p>
+      <div class="mood-row" id="mood-row"></div>
+      <textarea id="done-note" class="note-input" maxlength="400" rows="3" placeholder="Bu seanstan aklında ne kaldı? (isteğe bağlı)"></textarea>
+      <button class="btn primary" id="done-close">Kaydet ve kapat</button>
+      <button class="chip" id="done-skip">Geç</button>
+    </div>
+  </div>
+
+  <!-- ============ BREATH OVERLAY ============ -->
+  <div id="breath" class="overlay hidden">
+    <button class="icon-btn close" id="breath-close">✕</button>
+    <div class="player-body">
+      <h2 id="breath-title">—</h2>
+      <div class="breath-stage">
+        <div id="breath-circle" class="breath-circle"><span id="breath-phase">Hazır</span></div>
+      </div>
+      <div class="muted" id="breath-count">Tur 0 / 0</div>
+      <button class="btn primary round" id="breath-toggle">▶</button>
+    </div>
+  </div>
+
+  <!-- ============ KAYIT (hesap oluşturma) ============ -->
+  <div id="signup" class="overlay hidden">
+    <button class="icon-btn close" id="su-close">✕</button>
+    <div class="player-body">
+      <div class="ob-art">🌿</div>
+      <h1>Hesabını oluştur</h1>
+      <p class="muted">Serin, rozetlerin ve premium üyeliğin hesabına bağlanır; telefon değişse bile seninle gelir.</p>
+      <input id="su-email" type="email" placeholder="E-posta adresin" autocomplete="email" inputmode="email">
+      <button class="btn primary" id="su-btn">Hesabımı Oluştur</button>
+      <p class="muted small center">🛡️ Spam yok, şifre yok. Bilgin şimdilik cihazında saklanır; bulut senkronu yakında.</p>
+    </div>
+  </div>
+
+  <!-- ============ YOLCULUK DETAY ============ -->
+  <div id="program" class="overlay hidden">
+    <button class="icon-btn close" id="program-close">✕</button>
+    <div class="player-body prog-body">
+      <h2 id="program-title">—</h2>
+      <p class="muted small" id="program-desc"></p>
+      <div id="program-days" class="list prog-days"></div>
+    </div>
+  </div>
+
+  <!-- ============ PAYWALL (güven odaklı — tuzak yok) ============ -->
+  <div id="paywall" class="overlay hidden">
+    <button class="icon-btn close" id="paywall-close">✕</button>
+    <div class="player-body">
+      <div class="ob-art">⭐</div>
+      <h1>MediLuna Premium</h1>
+      <ul class="pw-list">
+        <li>✅ 30 meditasyon + 10 uyku hikayesinin tamamı</li>
+        <li>✅ Yolculuk programları + her ay yeni içerik</li>
+        <li>✅ Kadın / erkek gerçek seslendirme</li>
+        <li>✅ Çevrimdışı çalışır — uçak modunda bile</li>
+      </ul>
+      <div class="pw-timeline">
+        <div class="pwt"><b>Bugün</b><span>Her şey açılır, ücret alınmaz</span></div>
+        <div class="pwt"><b>5. gün</b><span>Deneme bitmeden bildirimle hatırlatırız</span></div>
+        <div class="pwt"><b>7. gün</b><span>Sen onaylamadan ücret çekilmez</span></div>
+      </div>
+      <div class="pw-plans">
+        <button class="pw-plan" data-plan="yillik"><b>Yıllık</b><span>₺699,99 / yıl</span><span class="pw-badge">%60 indirim</span></button>
+        <button class="pw-plan" data-plan="aylik"><b>Aylık</b><span>₺149,99 / ay</span></button>
+      </div>
+      <button class="btn primary" id="pw-trial">7 gün ücretsiz dene</button>
+      <p class="pw-trust muted small center">🛡️ Tuzak yok: uygulama içinden tek dokunuşla iptal · sürpriz zam yok</p>
+      <p class="muted small center">(Demo — gerçek ödeme yok)</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<script src="data.js?v=8"></script>
+<script src="app.js?v=8"></script>
+</body>
+</html>
