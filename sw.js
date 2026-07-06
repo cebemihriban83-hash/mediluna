@@ -1,6 +1,6 @@
 /* HUZUR service worker — çevrimdışı destek */
 "use strict";
-const CACHE = "huzur-v9";
+const CACHE = "huzur-v10";
 const ASSETS = [
   "./index.html",
   "./style.css?v=8",
