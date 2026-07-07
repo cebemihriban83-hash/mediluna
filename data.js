@@ -1,5 +1,9 @@
-/* HUZUR — içerik kütüphanesi (tamamı özgün, kendi yazdığımız metinler) */
+/* MediLuna — içerik kütüphanesi (tamamı özgün, kendi yazdığımız metinler) */
 "use strict";
+
+/* v1 LANSMAN: tüm içerik ücretsiz — v1.1'de RevenueCat ile gerçek abonelik
+   gelince false yapılacak (kilitler ve paywall geri döner) */
+const LANSMAN_MODU = true;
 
 const CATS = [
   { id: "hepsi",     name: "Hepsi" },
@@ -637,6 +641,14 @@ const PROGRAMS = [
     desc: "5 seansta gerginliği tanı, gevşet, bırak",
     days: ["m20", "m1", "m2", "m28", "m11"],
   },
+];
+
+/* Toplu seanslar — senkronu saat sağlar: herkes aynı dakikada aynı içerikte.
+   taban: katılımcı sayacının çekirdeği (v2'de gerçek sayaca bağlanacak) */
+const TOPLU_SEANSLAR = [
+  { id: "sabah", saat: "08:00", ad: "Güne Birlikte Başla", emoji: "☀️", icerik: "m11", taban: 1140 },
+  { id: "ogle",  saat: "13:00", ad: "Öğle Molası",         emoji: "🍃", icerik: "m20", taban: 720 },
+  { id: "gece",  saat: "22:00", ad: "Ay Işığı Seansı",     emoji: "🌕", icerik: "m22", taban: 3080 },
 ];
 
 /* Rozetler — koşullar app.js/checkBadges içinde */

@@ -287,6 +287,14 @@ input[type=time]{color-scheme:dark}
 /* hesap satırı */
 .account-row{width:100%;border:1px solid rgba(127,196,232,.3);color:var(--txt);cursor:pointer;font-family:inherit;font-size:14px;text-align:left}
 
+/* toplu seans kartı */
+.toplu{border:1px solid rgba(179,227,247,.35)}
+.toplu .feat-body{margin:8px 0 2px}
+.toplu.canli{border-color:rgba(224,122,122,.75);animation:canliNabiz 2.2s infinite}
+@keyframes canliNabiz{0%,100%{box-shadow:0 0 0 0 rgba(224,122,122,.32)}50%{box-shadow:0 0 20px 5px rgba(224,122,122,.16)}}
+.toplu.canli .hero-tag{color:#F0A8A8}
+#toplu-sayac{color:var(--accent2)}
+
 /* konfeti kutlaması */
 .confetti{position:absolute;inset:0;pointer-events:none;z-index:60;overflow:hidden}
 .confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.95;animation:confDrop linear forwards}

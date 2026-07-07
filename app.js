@@ -18,6 +18,7 @@ const defaultState = () => ({
   cat: "hepsi",
   favorites: [],
   user: null,            // {email, created} — kayıt (şimdilik cihazda; bulut v5)
+  topluBildirim: false,  // toplu seans öncesi 10 dk hatırlatma
   voice: "f",            // seslendirme tercihi: f=kadın, m=erkek
   guideOn: true,         // sesli rehber varsayılan açık (v4: gerçek kayıtlar)
   reminders: ["21:00"],  // vardiya modu: birden çok hatırlatma saati
@@ -59,6 +60,7 @@ function loadState() {
     if (typeof merged.guideOn !== "boolean") merged.guideOn = true;
     if (merged.voice !== "m") merged.voice = "f";
     merged.user = s.user || null;
+    if (typeof merged.topluBildirim !== "boolean") merged.topluBildirim = false;
     return merged;
   } catch (e) {
     console.warn("state okunamadı, sıfırdan başlıyor", e);
@@ -100,10 +102,16 @@ function dayIndex(mod) {
   return mod > 0 ? n % mod : 0;
 }
 function freeStoryToday() { return STORIES[dayIndex(STORIES.length)]; }
-function storyLocked(id) { return !state.premium && id !== freeStoryToday().id; }
+function storyLocked(id) {
+  if (LANSMAN_MODU) return false; // v1: her şey açık
+  return !state.premium && id !== freeStoryToday().id;
+}
 /* Günün meditasyonu: premium bile olsa O GÜN ücretsizdir (cömert katman) */
 function dailyFreeMed() { return MEDITATIONS[dayIndex(MEDITATIONS.length)]; }
-function medLocked(m) { return !!m.premium && !state.premium && m.id !== dailyFreeMed().id; }
+function medLocked(m) {
+  if (LANSMAN_MODU) return false; // v1: her şey açık
+  return !!m.premium && !state.premium && m.id !== dailyFreeMed().id;
+}
 function monthKey() { return new Date().toISOString().slice(0, 7); }
 function ensureMonthlyFreeze() {
   if (state.freezeMonth !== monthKey()) {
@@ -924,7 +932,7 @@ function weekSessionCount() {
 function medItemHTML(m) {
   const [emoji, grad] = catInfo(m.cat);
   const lock = medLocked(m) ? `<span class="lock">🔒</span>`
-    : (m.premium && !state.premium ? `<span class="lock">🎁</span>` : "");
+    : (m.premium && !state.premium && !LANSMAN_MODU ? `<span class="lock">🎁</span>` : "");
   const fav = isFav(m.id) ? "💛" : "";
   return `<button class="item" data-play="${m.id}">
     <div class="art" style="background:${grad}">${emoji}</div>
@@ -950,10 +958,34 @@ function renderHome() {
     : "Dokun; önerileri sana göre ayarlayalım";
 
   const daily = dailyFreeMed();
-  $("daily-tag").textContent = daily.premium ? "GÜNÜN MEDİTASYONU · BUGÜN ÜCRETSİZ 🎁" : "GÜNÜN MEDİTASYONU";
+  $("daily-tag").textContent = (daily.premium && !LANSMAN_MODU) ? "GÜNÜN MEDİTASYONU · BUGÜN ÜCRETSİZ 🎁" : "GÜNÜN MEDİTASYONU";
   $("daily-title").textContent = daily.title;
   $("daily-meta").textContent = `${daily.dur} dk · ${(CATS.find(c=>c.id===daily.cat)||{}).name || ""}`;
   $("daily-play").dataset.play = daily.id;
+
+  // Toplu seans: yaklaşan geri sayımla, canlıyken nabızlı "Katıl" kartı
+  const ts = topluDurum();
+  if (ts) {
+    $("toplu-card").innerHTML = ts.canli
+      ? `<button class="card feat toplu canli" data-play="${ts.item.id}">
+          <div class="hero-tag">🔴 ŞU AN CANLI · TOPLU SEANS</div>
+          <div class="feat-body"><span class="feat-emoji">${ts.s.emoji}</span>
+            <div><h2>${ts.s.ad}</h2><span class="muted small">${topluKatilim(ts.s)} kişi şu an birlikte · ${ts.item.dur} dk</span></div></div>
+          <span class="feat-play">▶ Katıl</span>
+        </button>`
+      : `<div class="card toplu">
+          <div class="row-between"><span class="hero-tag">🌍 TOPLU SEANS</span>
+            <button class="icon-btn sm" id="toplu-zil" title="Seans öncesi hatırlat">${state.topluBildirim ? "🔔" : "🔕"}</button></div>
+          <div class="feat-body"><span class="feat-emoji">${ts.s.emoji}</span>
+            <div><h2>${ts.s.ad}</h2><span class="muted small">${ts.s.saat}'de herkesle aynı anda · <b id="toplu-sayac">${fmtKalan(ts.kalan)}</b> sonra</span></div></div>
+        </div>`;
+    const zil = $("toplu-zil");
+    if (zil) zil.onclick = () => {
+      state.topluBildirim = !state.topluBildirim;
+      save(); renderHome(); Notif.sync();
+      toast(state.topluBildirim ? "Toplu seanslardan 10 dk önce haber vereceğim 🔔" : "Toplu seans hatırlatması kapalı");
+    };
+  }
 
   // Devam eden yolculuk
   const cont = PROGRAMS.map((p) => {
@@ -986,7 +1018,7 @@ function renderHome() {
     { t: "3 dk Odak", e: "⚡", id: "m6", g: "linear-gradient(135deg,#1e3c72,#2a5298)" },
     { t: "Sakinleşme Nefesi", e: "🍃", breath: "bcalm", g: "linear-gradient(135deg,#134E5E,#2d7d6e)" },
     { t: "Yağmur Sesi", e: "🌧️", sound: "rain", g: "linear-gradient(135deg,#2b5876,#4e4376)" },
-    { t: fs.title, e: fs.emoji, id: fs.id, g: "linear-gradient(135deg,#141E30,#3a4d6b)", sub: "Bugün ücretsiz" },
+    { t: fs.title, e: fs.emoji, id: fs.id, g: "linear-gradient(135deg,#141E30,#3a4d6b)", sub: LANSMAN_MODU ? "Uyku hikayesi" : "Bugün ücretsiz" },
   ];
   $("quick-row").innerHTML = quick.map((q) => {
     const attr = q.id ? `data-play="${q.id}"` : q.breath ? `data-breath="${q.breath}"` : `data-sound="${q.sound}"`;
@@ -1076,7 +1108,7 @@ function renderSleep() {
   const fs = freeStoryToday();
   $("story-featured").innerHTML = `
     <button class="card feat" data-play="${fs.id}">
-      <div class="hero-tag">GÜNÜN HİKAYESİ · BUGÜN ÜCRETSİZ 🎁</div>
+      <div class="hero-tag">${LANSMAN_MODU ? "GÜNÜN HİKAYESİ 🌙" : "GÜNÜN HİKAYESİ · BUGÜN ÜCRETSİZ 🎁"}</div>
       <div class="feat-body">
         <span class="feat-emoji">${fs.emoji}</span>
         <div><h2>${fs.title}</h2><span class="muted small">${fs.dur} dk · sesli okuma destekli</span></div>
@@ -1138,7 +1170,8 @@ function renderMixer() {
 
 function renderProfile() {
   $("profile-name").textContent = state.name || "Profil";
-  $("premium-chip").textContent = state.premium ? "⭐ Premium Üye" : "⭐ Premium'a Geç";
+  $("premium-chip").textContent = LANSMAN_MODU ? "🌕 Lansman: her şey açık"
+    : state.premium ? "⭐ Premium Üye" : "⭐ Premium'a Geç";
   $("st-streak").textContent = state.stats.streak;
   $("st-min").textContent = state.stats.totalMin;
   $("st-ses").textContent = state.stats.sessions;
@@ -1146,8 +1179,8 @@ function renderProfile() {
 
   // Hesap
   $("account-row").innerHTML = state.user
-    ? `<span>📧 ${escapeHtml(state.user.email)}</span><span class="muted small">${state.premium ? "Premium üye ⭐" : "Ücretsiz üyelik"}</span>`
-    : `<span>📧 Hesap oluştur</span><span class="muted small">Serin ve premium'un güvende olsun →</span>`;
+    ? `<span>📧 ${escapeHtml(state.user.email)}</span><span class="muted small">${state.premium ? "Premium üye ⭐" : LANSMAN_MODU ? "Lansman üyesi 🌕" : "Ücretsiz üyelik"}</span>`
+    : `<span>📧 Hesap oluştur</span><span class="muted small">Serin ve rozetlerin güvende olsun →</span>`;
 
   // Seri Koruma
   $("freeze-chip").textContent = `🧊 Seri Koruma: ${state.freezes} hak`;
@@ -1235,6 +1268,33 @@ function renderAll() {
   renderProfile();
 }
 
+/* ================= TOPLU SEANSLAR (senkronu saat sağlar) ================= */
+function fmtKalan(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h > 0 ? `${h} sa ${m} dk` : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+function topluDurum() {
+  const simdi = new Date();
+  let enYakin = null;
+  for (const s of TOPLU_SEANSLAR) {
+    const item = findItem(s.icerik);
+    if (!item) continue;
+    const [h, m] = s.saat.split(":").map(Number);
+    const bas = new Date(simdi); bas.setHours(h, m, 0, 0);
+    const bit = new Date(bas.getTime() + item.dur * 60000);
+    if (simdi >= bas && simdi < bit) return { s, item, canli: true, kalan: 0 };
+    const aday = simdi >= bit ? new Date(bas.getTime() + 86400000) : bas;
+    const kalan = Math.floor((aday - simdi) / 1000);
+    if (!enYakin || kalan < enYakin.kalan) enYakin = { s, item, canli: false, kalan };
+  }
+  return enYakin;
+}
+function topluKatilim(s) {
+  // v2'de gerçek sayaca bağlanacak; şimdilik güne göre nefes alan simülasyon
+  const j = Math.round(Math.sin(Date.now() / 90000 + s.taban) * 90);
+  return (s.taban + j).toLocaleString("tr-TR");
+}
+
 /* canlı sayaç */
 function liveCount() {
   const base = 2400 + Math.round(1200 * Math.sin(Date.now() / 240000));
@@ -1244,7 +1304,10 @@ function liveCount() {
 }
 
 /* ================= PAYWALL ================= */
-function openPaywall() { $("paywall").classList.remove("hidden"); }
+function openPaywall() {
+  if (LANSMAN_MODU) { toast("Lansman dönemi: tüm içerik ücretsiz 🌕"); return; }
+  $("paywall").classList.remove("hidden");
+}
 
 /* ================= KAYIT (hesap oluşturma) ================= */
 function openSignup() {
@@ -1516,6 +1579,20 @@ const Notif = {
         body: "Bugün henüz seans yapmadıysan 3 dakika bile yeter.",
         schedule: { on: { hour: 20, minute: 45 }, allowWhileIdle: true },
       });
+      // toplu seanslar: 10 dk önce çağrı (kullanıcı açtıysa)
+      if (state.topluBildirim) {
+        let tid = 910;
+        TOPLU_SEANSLAR.forEach((s) => {
+          const [h, m] = s.saat.split(":").map(Number);
+          let hh = h, mm = m - 10;
+          if (mm < 0) { mm += 60; hh = (hh + 23) % 24; }
+          list.push({
+            id: tid++, title: `${s.emoji} ${s.ad} birazdan başlıyor`,
+            body: `${s.saat}'te herkes aynı anda başlıyor — yerini al.`,
+            schedule: { on: { hour: hh, minute: mm }, allowWhileIdle: true },
+          });
+        });
+      }
       await p.schedule({ notifications: list });
     } catch (e) { console.warn("bildirim planlanamadı", e); }
   },
@@ -1536,6 +1613,15 @@ try {
   initOnboarding();
   liveCount();
   setInterval(liveCount, 5000);
+  // toplu seans geri sayımı: saniyede bir sadece sayaç metni; durum değişince tam çizim
+  setInterval(() => {
+    const ts = topluDurum();
+    if (!ts) return;
+    const el = $("toplu-sayac");
+    if (ts.canli && el) { renderHome(); return; }           // geri sayım bitti → canlı kart
+    if (!ts.canli && !el) { renderHome(); return; }         // canlı bitti → geri sayım kartı
+    if (el && !ts.canli) el.textContent = fmtKalan(ts.kalan);
+  }, 1000);
   Notif.sync();
   // kayıtlı ama hesapsız kullanıcıya açılışta bir kez kayıt öner (kapatılabilir)
   if (state.onboarded && !state.user) setTimeout(openSignup, 1200);
