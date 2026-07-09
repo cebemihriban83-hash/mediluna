@@ -1,12 +1,12 @@
 /* HUZUR service worker — çevrimdışı destek */
 "use strict";
-const CACHE = "huzur-v11";
+const CACHE = "huzur-v12";
 const ASSETS = [
   "./index.html",
-  "./style.css?v=9",
-  "./data.js?v=9",
-  "./app.js?v=9",
-  "./tts_meta.json?v=5",
+  "./style.css?v=10",
+  "./data.js?v=10",
+  "./app.js?v=10",
+  "./tts_meta.json?v=6",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
