@@ -1626,7 +1626,7 @@ try {
   // kayıtlı ama hesapsız kullanıcıya açılışta bir kez kayıt öner (kapatılabilir)
   if (state.onboarded && !state.user) setTimeout(openSignup, 1200);
   // ön-render seslendirme haritası (yoksa sentez TTS'e düşülür)
-  fetch("tts_meta.json?v=6")
+  fetch("tts_meta.json?v=7")
     .then((r) => (r.ok ? r.json() : {}))
     .then((j) => { TTS.meta = j || {}; })
     .catch(() => { TTS.meta = {}; });
